@@ -40,37 +40,6 @@ pub async fn fetch_all_gitlab_projects(token: &str) -> Result<Vec<Value>, Box<dy
 }
 
 
-pub async fn list_project_variables(token: &str, project_name: &str) -> Result<(), Box<dyn Error>> {
-    let project_id:u64 = fetch_project_id_by_name(token,project_name).await?;
-    let response = API_CLIENT
-        .get(format!("https://gitlab.com/api/v4/projects/{}/variables",project_id))
-        .header("Authorization", format!("Bearer {}", token))
-        .send()?;
-    if response.status().is_success(){
-        let variables: Vec<Value>= response.json()?;
-        let mut table = Table::new();
-        table.load_preset(UTF8_FULL)
-            .set_header(vec![
-                Cell::new("Key").add_attribute(Attribute::Bold),
-                Cell::new("Value").add_attribute(Attribute::Bold)
-            ]);
-
-            for variable in variables{
-                table.add_row(vec![
-                    Cell::new(variable["key"].as_str().unwrap_or("")),
-                    Cell::new(variable["value"].as_str().unwrap_or("")),
-                ]);
-            }
-        println!("{table}");
-
-    }else {
-        eprintln!("Failed to fetch variables for this project. Response={}", response.status());
-    }
-
-
-    Ok(())
-
-}
 // Fetch a project by name asynchronously
 
 pub async fn fetch_project_id_by_name(token: &str, project_name: &str) -> Result<u64, Box<dyn Error>> {
